@@ -1,7 +1,8 @@
 import numpy as np
 from tests.utils import pretty
+from typing import Dict, Any, Tuple
 
-def run_all(ns):
+def run_all(ns: Dict[str, Any]) -> Tuple[bool, str]:
     make_zeros_int16_3x2 = ns["make_zeros_int16_3x2"]
     make_full_pi_float32_2x3 = ns["make_full_pi_float32_2x3"]
     make_int8_range_neg5_to_4 = ns["make_int8_range_neg5_to_4"]

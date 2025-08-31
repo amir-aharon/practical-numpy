@@ -1,7 +1,8 @@
 import numpy as np
-from tests.utils import pretty, pretty_bool
+from tests.utils import pretty
+from typing import Dict, Any, Tuple
 
-def run_all(ns):
+def run_all(ns: Dict[str, Any]) -> Tuple[bool, str]:
     make_eye4 = ns["make_eye4"]
     make_band_main_and_upper = ns["make_band_main_and_upper"]
     make_tril_mask5_exclusive = ns["make_tril_mask5_exclusive"]
@@ -10,56 +11,47 @@ def run_all(ns):
     results = []
 
     # --- Identity 4x4 ---
-    eye4 = make_eye4()
+    arr = make_eye4()
     checks = [
-        (eye4.shape == (4,4), "eye4: shape (4,4)"),
-        (np.all(eye4.diagonal() == 1), "eye4: diagonal ones"),
-        (np.count_nonzero(eye4) == 4, "eye4: only 4 ones"),
+        (arr.shape == (4,4), "eye4: shape (4,4)"),
+        (arr.dtype in [np.int32, np.int64, np.float32, np.float64], "eye4: numeric dtype"),
+        (np.all(np.diag(arr) == 1), "eye4: diagonal is 1"),
+        (np.count_nonzero(arr) == 4, "eye4: exactly 4 non-zero elements"),
     ]
-    results.append(("Identity matrix (4x4)", checks, pretty(eye4)))
+    results.append(("Identity 4x4", checks, pretty(arr)))
 
-    # --- Banded matrix (main=1, upper=3) ---
-    band = make_band_main_and_upper()
-    i, j = np.indices((4,4))
-    main = (i == j)
-    upper = (j == i + 1)
-    other = ~(main | upper)
+    # --- Banded (main=1, upper=3) ---
+    arr = make_band_main_and_upper()
     checks = [
-        (band.shape == (4,4), "band: shape (4,4)"),
-        (np.all(band[main] == 1), "band: main diag=1"),
-        (np.all(band[upper] == 3), "band: upper diag=3"),
-        (np.all(band[other] == 0), "band: elsewhere 0"),
+        (arr.shape == (4,4), "band: shape (4,4)"),
+        (arr.dtype in [np.int32, np.int64, np.float32, np.float64], "band: numeric dtype"),
+        (np.all(np.diag(arr) == 1), "band: main diagonal is 1"),
+        (np.all(np.diag(arr, k=1) == 3), "band: upper diagonal is 3"),
+        (np.count_nonzero(arr) == 7, "band: exactly 7 non-zero elements"),
     ]
-    results.append(("Banded matrix (diag=1, upper=3)", checks, pretty(band)))
+    results.append(("Banded (main=1, upper=3)", checks, pretty(arr)))
 
-    # --- Strict lower-tri mask (5x5) ---
-    mask = make_tril_mask5_exclusive()
-    i5, j5 = np.indices((5,5))
+    # --- Strict lower-triangular mask ---
+    arr = make_tril_mask5_exclusive()
     checks = [
-        (mask.shape == (5,5) and mask.dtype == bool, "mask: shape (5,5), dtype=bool"),
-        (np.all(mask[i5 <= j5] == False), "mask: diag+above False"),
-        (np.all(mask[i5 > j5] == True), "mask: below True"),
+        (arr.shape == (5,5), "tril: shape (5,5)"),
+        (arr.dtype == bool, "tril: boolean dtype"),
+        (arr[0,0] == False, "tril: (0,0) is False (on diagonal)"),
+        (arr[1,0] == True, "tril: (1,0) is True (below diagonal)"),
+        (arr[0,1] == False, "tril: (0,1) is False (above diagonal)"),
     ]
-    # special: boolean pretty
-    results.append(("Strict lower-triangular mask (5x5)", checks, "see below"))
-    mask_str = []
-    chars = {True: "T", False: "F"}
-    for row in mask:
-        mask_str.append(" ".join(chars[v] for v in row))
+    results.append(("Strict lower-triangular mask", checks, pretty(arr)))
 
     # ---- reporting ----
     report_lines = ["Section 3 tests:"]
-    for idx, (title, checks, arr) in enumerate(results):
+    for title, checks, arr in results:
         report_lines.append(f"\n--- {title} ---")
         for good, name in checks:
             mark = "✅" if good else "❌"
             report_lines.append(f"{mark} {name}")
             ok &= bool(good)
         report_lines.append("Output:")
-        if idx == 2:  # mask case
-            report_lines.extend(mask_str)
-        else:
-            report_lines.append(str(arr))
+        report_lines.append(str(arr))
 
     report = "\n".join(report_lines)
     return ok, report

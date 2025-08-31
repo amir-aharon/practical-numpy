@@ -1,40 +1,41 @@
 import numpy as np
 from tests.utils import pretty
+from typing import Dict, Any, Tuple
 
-def run_all(ns):
-    make_reshape_c_order = ns["make_reshape_c_order"]
-    make_reshape_f_order = ns["make_reshape_f_order"]
-    make_frombuffer_uint8 = ns["make_frombuffer_uint8"]
+def run_all(ns: Dict[str, Any]) -> Tuple[bool, str]:
+    make_reshape_2d_to_1d = ns["make_reshape_2d_to_1d"]
+    make_reshape_1d_to_3d = ns["make_reshape_1d_to_3d"]
+    make_transpose_2x3 = ns["make_transpose_2x3"]
 
     ok = True
     results = []
 
-    # --- C-order reshape ---
-    out = make_reshape_c_order()
+    # --- 2D to 1D reshape ---
+    arr = make_reshape_2d_to_1d()
     checks = [
-        (out.shape == (2,3), "C-order: shape (2,3)"),
-        (out.flags["C_CONTIGUOUS"], "C-order: C-contiguous"),
-        (np.array_equal(out, [[0,1,2],[3,4,5]]), "C-order: row layout matches"),
+        (arr.ndim == 1, "reshape_2d_to_1d: 1D array"),
+        (arr.size == 12, "reshape_2d_to_1d: size 12"),
+        (arr[0] == 0 and arr[-1] == 11, "reshape_2d_to_1d: first=0, last=11"),
     ]
-    results.append(("C-order reshape (0..5 → 2x3)", checks, pretty(out)))
+    results.append(("2D to 1D reshape", checks, pretty(arr)))
 
-    # --- Fortran-order reshape ---
-    out = make_reshape_f_order()
+    # --- 1D to 3D reshape ---
+    arr = make_reshape_1d_to_3d()
     checks = [
-        (out.shape == (2,3), "F-order: shape (2,3)"),
-        (out.flags["F_CONTIGUOUS"], "F-order: Fortran-contiguous"),
-        (np.array_equal(out, [[1,3,5],[2,4,6]]), "F-order: column layout matches"),
+        (arr.ndim == 3, "reshape_1d_to_3d: 3D array"),
+        (arr.shape == (2, 3, 2), "reshape_1d_to_3d: shape (2,3,2)"),
+        (arr[0, 0, 0] == 0 and arr[-1, -1, -1] == 11, "reshape_1d_to_3d: first=0, last=11"),
     ]
-    results.append(("Fortran-order reshape (1..6 → 2x3)", checks, pretty(out)))
+    results.append(("1D to 3D reshape", checks, pretty(arr)))
 
-    # --- Frombuffer uint8 ---
-    out = make_frombuffer_uint8()
+    # --- Transpose 2x3 ---
+    arr = make_transpose_2x3()
     checks = [
-        (out.shape == (4,), "frombuffer: length 4"),
-        (out.dtype == np.uint8, "frombuffer: dtype uint8"),
-        (np.array_equal(out, [1,2,3,4]), "frombuffer: values [1,2,3,4]"),
+        (arr.ndim == 2, "transpose_2x3: 2D array"),
+        (arr.shape == (3, 2), "transpose_2x3: shape (3,2)"),
+        (arr[0, 0] == 0 and arr[2, 1] == 5, "transpose_2x3: correct values"),
     ]
-    results.append(("From raw bytes (uint8)", checks, pretty(out)))
+    results.append(("Transpose 2x3", checks, pretty(arr)))
 
     # ---- reporting ----
     report_lines = ["Section 4 tests:"]

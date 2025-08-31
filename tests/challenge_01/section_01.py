@@ -1,7 +1,8 @@
 import numpy as np
 from tests.utils import pretty
+from typing import Dict, Any, Tuple
 
-def run_all(ns):
+def run_all(ns: Dict[str, Any]) -> Tuple[bool, str]:
     make_odds_10_to_30 = ns["make_odds_10_to_30"]
     make_linspace_unit_interval_101 = ns["make_linspace_unit_interval_101"]
     make_logspace_decades_0_to_3 = ns["make_logspace_decades_0_to_3"]
