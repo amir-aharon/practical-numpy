@@ -3,57 +3,56 @@ from tests.utils import pretty
 from typing import Dict, Any, Tuple
 
 def run_all(ns: Dict[str, Any]) -> Tuple[bool, str]:
-    make_stack_horizontal = ns["make_stack_horizontal"]
-    make_stack_vertical = ns["make_stack_vertical"]
-    make_split_2_equal = ns["make_split_2_equal"]
-    make_split_3_parts = ns["make_split_3_parts"]
+    make_vstack_rows_2x3 = ns["make_vstack_rows_2x3"]
+    make_hstack_cols_3x2 = ns["make_hstack_cols_3x2"]
+    make_stack_depth_2x2x2 = ns["make_stack_depth_2x2x2"]
+    make_split_1d_5_equal = ns["make_split_1d_5_equal"]
 
     ok = True
     results = []
 
-    # --- Horizontal stack ---
-    arr = make_stack_horizontal()
+    # --- Vertical stack rows ---
+    arr = make_vstack_rows_2x3()
     checks = [
-        (arr.ndim == 2, "stack_h: 2D array"),
-        (arr.shape == (2, 4), "stack_h: shape (2,4)"),
-        (np.array_equal(arr[:, :2], [[1, 2], [3, 4]]), "stack_h: left half correct"),
-        (np.array_equal(arr[:, 2:], [[5, 6], [7, 8]]), "stack_h: right half correct"),
+        (arr.ndim == 2, "vstack: 2D array"),
+        (arr.shape == (2, 3), "vstack: shape (2,3)"),
+        (np.array_equal(arr[0], [1, 2, 3]), "vstack: first row [1,2,3]"),
+        (np.array_equal(arr[1], [4, 5, 6]), "vstack: second row [4,5,6]"),
     ]
-    results.append(("Horizontal stack", checks, pretty(arr)))
+    results.append(("Vertical stack (rows)", checks, pretty(arr)))
 
-    # --- Vertical stack ---
-    arr = make_stack_vertical()
+    # --- Horizontal stack columns ---
+    arr = make_hstack_cols_3x2()
     checks = [
-        (arr.ndim == 2, "stack_v: 2D array"),
-        (arr.shape == (4, 2), "stack_v: shape (4,2)"),
-        (np.array_equal(arr[:2], [[1, 2], [3, 4]]), "stack_v: top half correct"),
-        (np.array_equal(arr[2:], [[5, 6], [7, 8]]), "stack_v: bottom half correct"),
+        (arr.ndim == 2, "hstack: 2D array"),
+        (arr.shape == (3, 2), "hstack: shape (3,2)"),
+        (np.array_equal(arr[:, 0], [1, 2, 3]), "hstack: first column [1,2,3]"),
+        (np.array_equal(arr[:, 1], [10, 20, 30]), "hstack: second column [10,20,30]"),
     ]
-    results.append(("Vertical stack", checks, pretty(arr)))
+    results.append(("Horizontal stack (columns)", checks, pretty(arr)))
 
-    # --- Split into 2 equal parts ---
-    arr = make_split_2_equal()
+    # --- Stack along depth ---
+    arr = make_stack_depth_2x2x2()
     checks = [
-        (len(arr) == 2, "split_2: 2 arrays"),
-        (arr[0].shape == (2, 2), "split_2: first array shape (2,2)"),
-        (arr[1].shape == (2, 2), "split_2: second array shape (2,2)"),
-        (np.array_equal(arr[0], [[1, 2], [3, 4]]), "split_2: first array correct"),
-        (np.array_equal(arr[1], [[5, 6], [7, 8]]), "split_2: second array correct"),
+        (arr.ndim == 3, "depth: 3D array"),
+        (arr.shape == (2, 2, 2), "depth: shape (2,2,2)"),
+        (np.array_equal(arr[:, :, 0], [[1, 0], [0, 1]]), "depth: first slice is identity"),
+        (np.array_equal(arr[:, :, 1], [[2, 2], [2, 2]]), "depth: second slice is all 2s"),
     ]
-    results.append(("Split into 2 equal parts", checks, arr))
+    results.append(("Stack along depth", checks, pretty(arr)))
 
-    # --- Split into 3 parts ---
-    arr = make_split_3_parts()
+    # --- Split 1D into 5 equal parts ---
+    parts = make_split_1d_5_equal()
     checks = [
-        (len(arr) == 3, "split_3: 3 arrays"),
-        (arr[0].shape == (1, 2), "split_3: first array shape (1,2)"),
-        (arr[1].shape == (1, 2), "split_3: second array shape (1,2)"),
-        (arr[2].shape == (1, 2), "split_3: third array shape (1,2)"),
-        (np.array_equal(arr[0], [[1, 2]]), "split_3: first array correct"),
-        (np.array_equal(arr[1], [[3, 4]]), "split_3: second array correct"),
-        (np.array_equal(arr[2], [[5, 6]]), "split_3: third array correct"),
+        (isinstance(parts, tuple), "split: returns tuple"),
+        (len(parts) == 5, "split: 5 chunks"),
+        (all(p.ndim == 1 for p in parts), "split: all 1D arrays"),
+        (all(p.size == 4 for p in parts), "split: each chunk size 4"),
+        (np.array_equal(parts[0], [0, 1, 2, 3]), "split: first chunk [0,1,2,3]"),
+        (np.array_equal(parts[1], [4, 5, 6, 7]), "split: second chunk [4,5,6,7]"),
+        (np.array_equal(parts[4], [16, 17, 18, 19]), "split: last chunk [16,17,18,19]"),
     ]
-    results.append(("Split into 3 parts", checks, arr))
+    results.append(("Split 1D into 5 equal parts", checks, parts))
 
     # ---- reporting ----
     report_lines = ["Section 5 tests:"]
