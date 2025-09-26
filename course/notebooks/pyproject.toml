@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "practical-numpy"
+version = "0.1.0"
+dependencies = [
+  "numpy>=1.25",
+]
+
+[tool.setuptools.packages.find]
+where = ["course"]
+# we include 'course' as the package; tests are not a package
+include = ["course*"]
