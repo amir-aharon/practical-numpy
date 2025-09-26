@@ -1,5 +1,5 @@
 import numpy as np
-from tests.utils import format_output
+from course.tests.utils import format_output
 from typing import Dict, Any, Tuple
 
 def run_all(ns: Dict[str, Any]) -> Tuple[bool, str]:
